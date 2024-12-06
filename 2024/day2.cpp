@@ -56,6 +56,10 @@ int main()
     std::vector<int> report{};
     std::string num{}; // construct a num string from the chars around the spaces
     char c{};
+
+    // for part 2
+    std::vector<std::vector<int>> reports{}; // hold all the reports for part 2 processing
+
     while (std::getline(file, line))
     {
         report.clear(); // clear reusable report container
@@ -79,6 +83,9 @@ int main()
             }
         }
 
+        // add report to vector for part 2 processing
+        reports.push_back(report);
+
         if (is_safe(report))
         {
             ++safe_count;
@@ -86,6 +93,48 @@ int main()
     }
 
     std::cout << "safe_count: " << safe_count << std::endl;
+
+    std::cout << "\n-- part 2 --" << std::endl;
+
+    // problem dampener...
+    // do this in the brute force way...
+    // if a report isn't safe, remove each element and re-run the check
+
+    // loop over each report
+    size_t safe_count_p2{0};
+    for (const std::vector<int> &report_p2 : reports) // can use auto...
+    {
+        if (is_safe(report_p2))
+        {
+            ++safe_count_p2;
+            continue; // nothing else to do here...
+        }
+
+        // now keep removing different elements to see if it makes it safe
+        std::vector<int> report_copy{report_p2}; // so we can modify it
+        int removed_val{0};
+
+        // loop over each element, because we want to test removing each element
+        for (size_t i{0}; i < report_p2.size(); ++i)
+        {
+            // store and remove val
+            removed_val = report_p2.at(i);
+            std::vector<int>::const_iterator it = report_copy.begin() + i;
+            report_copy.erase(it);
+
+            // check if safe
+            if (is_safe(report_copy))
+            {
+                ++safe_count_p2;
+                break; // it's safe! check the next report...
+            }
+
+            // not safe... add value back before checking the next one
+            report_copy.insert(it, removed_val);
+        }
+    }
+
+    std::cout << "safe_count_p2: " << safe_count_p2 << std::endl;
 
     return 0;
 }
