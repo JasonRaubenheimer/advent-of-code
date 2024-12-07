@@ -30,6 +30,31 @@ bool rules_ok(const std::vector<std::vector<int>> &rules, const std::vector<int>
     return true;
 }
 
+void fix_order(const std::vector<std::vector<int>> &rules, std::vector<int> &update)
+{
+    // update is fixed in place
+    size_t xpos{0};
+    size_t ypos{0};
+    for (const auto &pages : rules)
+    {
+        xpos = std::distance(update.begin(), find(update.begin(), update.end(), pages.at(0)));
+        ypos = std::distance(update.begin(), find(update.begin(), update.end(), pages.at(1)));
+
+        if (xpos < update.size() && ypos < update.size())
+        {
+            // it includes both numbers... now check the order
+            if (ypos < xpos)
+            {
+                // can we just swop the numbers..?
+                // this will probably break other rules..?
+                int xval{update.at(xpos)};
+                update.at(xpos) = update.at(ypos);
+                update.at(ypos) = xval;
+            }
+        }
+    }
+}
+
 int main()
 {
     std::cout << "day 5" << std::endl;
@@ -46,6 +71,7 @@ int main()
     int rule_y{0};
 
     int total{0};
+    int total_p2{0};
 
     bool get_rules{true};
     std::vector<int> update{};
@@ -81,11 +107,24 @@ int main()
                 size_t middle_idx{(update.size() - 1) / 2};
                 total += update.at(middle_idx);
             }
+            else
+            {
+                do
+                {
+                    // part 2 - correctly order the ones that break the rules...
+                    fix_order(rules, update);
+                } while (!rules_ok(rules, update));
+                // find middle page number and add it to the total
+                size_t middle_idx{(update.size() - 1) / 2};
+                total_p2 += update.at(middle_idx);
+            }
+
             update.clear();
         }
     }
 
     std::cout << "\npart1: " << total << std::endl;
+    std::cout << "\npart2: " << total_p2 << std::endl;
 
     return 0;
 }
