@@ -22,14 +22,16 @@ int main()
     // can we have this situation... mul(6,mul(...), do we need to look for that or will the algorithm in mind just handle it...?
 
     std::cout << "day 3" << std::endl;
-    std::cout << "\n-- part 1 --" << std::endl;
 
     // read in the reports
     std::ifstream file("input/day3");
     // std::ifstream file("input/day3_test");
+    // std::ifstream file("input/day3_testp2");
     std::string line;
 
-    const std::string mul{"mul("};
+    const std::string mul_const_str{"mul("};
+    const std::string enable_const_str{"do()"};
+    const std::string disable_const_str{"don't()"};
 
     size_t search_pos{0};
     size_t mul_pos{0};
@@ -41,7 +43,10 @@ int main()
     int num_1{0};
     int num_2{0};
 
-    int total{0};
+    int total_p1{0};
+    int total_p2{0};
+
+    bool enable{true};
 
     while (std::getline(file, line))
     {
@@ -49,7 +54,7 @@ int main()
         // find the substrings...
         for (;;)
         {
-            mul_pos = line.find(mul, search_pos);
+            mul_pos = line.find(mul_const_str, search_pos);
             if (mul_pos == std::string::npos)
             {
                 break;
@@ -62,7 +67,7 @@ int main()
                 break;
             }
 
-            num_str_1 = line.substr(mul_pos + mul.length(), comma_pos - (mul_pos + mul.length()));
+            num_str_1 = line.substr(mul_pos + mul_const_str.length(), comma_pos - (mul_pos + mul_const_str.length()));
 
             // try get an int from the num_str
             if (!is_str_valid_num(num_str_1))
@@ -96,14 +101,46 @@ int main()
 
             // nums are valid!
 
-            total += num_1 * num_2;
+            total_p1 += num_1 * num_2;
+
+            // part 2 ...
+            // check what the most recent do or don't was...
+            std::string enable_str{line.substr(0, close_pos)}; // search whole string up to the close point...
+            // and find the most recent between do() and don't()
+            std::size_t enable_pos = enable_str.rfind(enable_const_str);
+            std::size_t disable_pos = enable_str.rfind(disable_const_str);
+            if (enable_pos > enable_str.length())
+            {
+                enable_pos = 0;
+            }
+            if (disable_pos > enable_str.length())
+            {
+                disable_pos = 0;
+            }
+
+            if (enable_pos > disable_pos)
+            {
+                enable = true;
+            }
+            else if (disable_pos > enable_pos)
+            {
+                enable = false;
+            }
+
+            if (enable)
+            {
+                total_p2 += num_1 * num_2;
+            }
+
+            // ... end part 2
 
             // set search pos for next time
             search_pos = close_pos + 1;
         }
     }
 
-    std::cout << "total: " << total << std::endl;
+    std::cout << "total_p1: " << total_p1 << std::endl;
+    std::cout << "total_p2: " << total_p2 << std::endl;
 
     return 0;
 }
