@@ -30,6 +30,11 @@ private:
     };
 
     std::vector<std::vector<char>> map_m{};
+    size_t num_grid_pos_m{0};
+
+    size_t gx_starting_m{0};
+    size_t gy_starting_m{0};
+    Orientation go_starting_m{};
 
     size_t gx_m{0};
     size_t gy_m{0};
@@ -176,6 +181,7 @@ public:
         // init the location (x,y) and orientation of the guard
         bool found{false};
         char c{};
+        num_grid_pos_m = map_m.size() * map_m.at(0).size();
         for (size_t y{0}; y < map_m.size(); ++y)
         {
             for (size_t x{0}; x < map_m.at(y).size(); ++x)
@@ -206,6 +212,9 @@ public:
                 {
                     gx_m = x;
                     gy_m = y;
+                    gx_starting_m = x;
+                    gy_starting_m = y;
+                    go_starting_m = go_m;
                     break;
                 }
             }
@@ -216,10 +225,13 @@ public:
         }
     }
 
-    bool move()
+    bool move(bool record_position_switch = true)
     {
         // record position
-        record_position();
+        if (record_position_switch)
+        {
+            record_position();
+        }
 
         // returns true if next move is on the map, false otherwise
         if (will_move_off_map())
@@ -243,6 +255,51 @@ public:
     {
         return positions_m.size();
     }
+
+    bool is_starting_pos(size_t x, size_t y)
+    {
+        if (x == gx_starting_m && x == gy_starting_m)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    void add_obstacle(size_t x, size_t y)
+    {
+        map_m.at(y).at(x) = obs_m;
+    }
+
+    void reset(size_t x, size_t y, char c)
+    {
+        // reset starting pos, orientation, and obstacle
+
+        map_m.at(y).at(x) = c; // obstacle restoration
+
+        gx_m = gx_starting_m;
+        gy_m = gy_starting_m;
+
+        go_m = go_starting_m;
+    }
+
+    bool created_loop()
+    {
+        // returns true if we are in a loop, false otherwise
+        size_t move_count{0};
+        while (move(false))
+        {
+            // keep moving...
+            ++move_count;
+            if (move_count > num_grid_pos_m)
+            {
+                return true;
+            }
+        }
+
+        return false;
+
+        // TODO: check if we are catching the edge cases... might be off by one errors here...
+    }
 };
 
 int main()
@@ -255,16 +312,16 @@ int main()
 
     std::vector<std::vector<char>> map{};
 
-    size_t y{0};
+    size_t line_num{0};
 
     while (std::getline(file, line))
     {
         map.push_back(std::vector<char>{});
         for (const auto &c : line)
         {
-            map.at(y).push_back(c);
+            map.at(line_num).push_back(c);
         }
-        ++y;
+        ++line_num;
     }
 
     GuardMap guard_map{map};
@@ -276,6 +333,44 @@ int main()
     }
 
     std::cout << "\npositions: " << guard_map.get_distinct_positions() << std::endl;
+
+    // part 2
+
+    /*
+    - in a loop if the guard doesn't leave the map...
+    - the limit is the number of positions (could subtract obstacles... probably not necessary)
+    - so if the guard has moved the same number of positions as there are positions on the map, then we're in a loop
+
+    - iterate over each grid position and add an obstacle
+        - NB -> EXCEPT for where the guard currently is (just the starting position)
+    */
+
+    size_t loop_count{0};
+
+    for (size_t y{0}; y < map.size(); ++y)
+    {
+        for (size_t x{0}; x < map.at(y).size(); ++x)
+        {
+            if (guard_map.is_starting_pos(x, y))
+            {
+                continue;
+            }
+
+            // add an obstacle to this position
+            guard_map.add_obstacle(x, y);
+
+            // check if we created a loop
+            if (guard_map.created_loop())
+            {
+                ++loop_count;
+            }
+
+            // reset back to starting config
+            guard_map.reset(x, y, map.at(y).at(x));
+        }
+    }
+
+    std::cout << "\nloop_count: " << loop_count << std::endl;
 
     return 0;
 }
