@@ -8,25 +8,36 @@
 
 // clang++ -Wall -std=c++20 day7.cpp -o day7 && ./day7
 
-long to_long(const std::vector<bool> &bin_vec)
+long to_long(const std::vector<int> &base_three_vec)
 {
-    long value{0};
-    for (const bool bit : bin_vec)
+    long value = 0;
+    for (const int digit : base_three_vec)
     {
-        value = (value << 1) | bit; // left shift and add the bit
+        if (digit > 2)
+        {
+            throw std::invalid_argument("Invalid digit in base-3 vector");
+        }
+        value = value * 3 + digit; // Multiply by 3 and add the current digit
     }
     return value;
 }
 
-void to_bin(long &val, std::vector<bool> &bin_vec)
+void to_base_three(long &val, std::vector<int> &bin_vec)
 {
-    std::fill(bin_vec.begin(), bin_vec.end(), false); // clear and fill with zeros
+    static constexpr int base{3};
+    std::fill(bin_vec.begin(), bin_vec.end(), 0); // clear and fill with zeros
     for (size_t bin_vec_idx{bin_vec.size()}; val > 0 && bin_vec_idx > 0;)
     {
         // decrement index first, since we're filling from the end
-        bin_vec.at(--bin_vec_idx) = val % 2;
-        val /= 2;
+        bin_vec.at(--bin_vec_idx) = val % base;
+        val /= base;
     }
+}
+
+long concat_nums(const long &lhs_num, const long &rhs_num)
+{
+    // concatenate the two nums...
+    return std::stol(std::to_string(lhs_num) + std::to_string(rhs_num));
 }
 
 bool is_true(const std::vector<long> &vals, const long &test_val)
@@ -40,7 +51,7 @@ bool is_true(const std::vector<long> &vals, const long &test_val)
 
     // use binary counter... where 0 is + and 1 is *
 
-    std::vector<bool> bin{};
+    std::vector<int> bin{};
 
     // init with number of operators
     for (size_t i{0}; i < vals.size() - 1; ++i)
@@ -48,23 +59,38 @@ bool is_true(const std::vector<long> &vals, const long &test_val)
         bin.push_back(0);
     }
 
-    for (size_t n{0}; n < (std::pow(2, bin.size())); ++n)
+    std::vector<long> vals_cpy{};
+    for (size_t t{0}; t < (std::pow(3, bin.size())); ++t) // 'base 3'...
     {
-        long total{vals.at(0)};
+        vals_cpy = vals; // 'reset'
         for (size_t n{0}; n < bin.size(); ++n)
-        // for (const bool &v : bin)
         {
+            // idx 0 of vals_cpy is the current 'total'
+            // idx 1 is the value to the right of the operator
             if (bin.at(n) == 0)
             {
-                total += vals.at(n + 1);
+                vals_cpy.at(0) = vals_cpy.at(0) + vals_cpy.at(1);
             }
-            else // else v must be 1...
+            else if (bin.at(n) == 1)
             {
-                total *= vals.at(n + 1);
+                vals_cpy.at(0) = vals_cpy.at(0) * vals_cpy.at(1);
             }
+            else // must be 2
+            {
+                /* // working...
+                6   8    6   15
+                6 * 8 || 6 * 15
+                48 || 6 * 15
+                486 * 15
+                */
+                vals_cpy.at(0) = concat_nums(vals_cpy.at(0), vals_cpy.at(1));
+            }
+
+            // shift to the left (just remove element at idx 1)
+            vals_cpy.erase(vals_cpy.begin() + 1);
         }
 
-        if (total == test_val)
+        if (vals_cpy.at(0) == test_val)
         {
             return true;
         }
@@ -72,7 +98,7 @@ bool is_true(const std::vector<long> &vals, const long &test_val)
         // 'increment' counter...
         long val = to_long(bin);
         ++val;
-        to_bin(val, bin);
+        to_base_three(val, bin);
     }
 
     return false;
