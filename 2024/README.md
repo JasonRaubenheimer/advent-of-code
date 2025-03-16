@@ -1,5 +1,7 @@
 # 2024
 
+https://adventofcode.com/2024
+
 The plan is to do it is C++ this year.
 
 Right now the solutions are definitely not optimal...
