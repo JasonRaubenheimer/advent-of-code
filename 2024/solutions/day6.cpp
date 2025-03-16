@@ -306,8 +306,8 @@ int main()
 {
     std::cout << "day 6" << std::endl;
 
-    std::ifstream file("input/day6");
-    // std::ifstream file("input/day6_test");
+    std::ifstream file("../input/day6");
+    // std::ifstream file("../input/day6_test");
     std::string line;
 
     std::vector<std::vector<char>> map{};

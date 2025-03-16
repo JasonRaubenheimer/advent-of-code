@@ -59,8 +59,8 @@ int main()
 {
     std::cout << "day 5" << std::endl;
 
-    std::ifstream file("input/day5");
-    // std::ifstream file("input/day5_test");
+    std::ifstream file("../input/day5");
+    // std::ifstream file("../input/day5_test");
     std::string line;
 
     std::vector<std::vector<int>> rules{};

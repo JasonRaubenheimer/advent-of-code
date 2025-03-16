@@ -212,8 +212,8 @@ int main()
 
     std::cout << std::boolalpha << "day 8" << std::endl;
 
-    // std::ifstream infile("input/day8_test");
-    std::ifstream infile("input/day8");
+    // std::ifstream infile("../input/day8_test");
+    std::ifstream infile("../input/day8");
 
     std::vector<std::vector<char>> the_map{};
 

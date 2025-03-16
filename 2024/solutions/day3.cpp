@@ -24,9 +24,9 @@ int main()
     std::cout << "day 3" << std::endl;
 
     // read in the reports
-    std::ifstream file("input/day3");
-    // std::ifstream file("input/day3_test");
-    // std::ifstream file("input/day3_testp2");
+    std::ifstream file("../input/day3");
+    // std::ifstream file("../input/day3_test");
+    // std::ifstream file("../input/day3_testp2");
     std::string line;
 
     const std::string mul_const_str{"mul("};

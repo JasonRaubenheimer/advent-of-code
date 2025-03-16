@@ -347,8 +347,8 @@ int main()
 
     std::cout << "day " << day << std::endl;
 
-    // std::ifstream infile("input/day" + day + "_test");
-    std::ifstream infile("input/day" + day);
+    // std::ifstream infile("../input/day" + day + "_test");
+    std::ifstream infile("../input/day" + day);
 
     std::string disk_map{};
     std::string line;

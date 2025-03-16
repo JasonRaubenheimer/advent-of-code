@@ -195,8 +195,8 @@ int main()
 {
     std::cout << "day 4" << std::endl;
 
-    std::ifstream file("input/day4");
-    // std::ifstream file("input/day4_test");
+    std::ifstream file("../input/day4");
+    // std::ifstream file("../input/day4_test");
     std::string line;
 
     std::vector<std::string> grid{};

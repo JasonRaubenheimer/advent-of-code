@@ -108,8 +108,8 @@ int main()
 {
     std::cout << "day 7" << std::endl;
 
-    std::ifstream file("input/day7");
-    // std::ifstream file("input/day7_test");
+    std::ifstream file("../input/day7");
+    // std::ifstream file("../input/day7_test");
     std::string line;
 
     long test_val{0};

@@ -49,8 +49,8 @@ int main()
     std::cout << "\n-- part 1 --" << std::endl;
 
     // read in the reports
-    std::ifstream file("input/day2");
-    // std::ifstream file("input/day2_test");
+    std::ifstream file("../input/day2");
+    // std::ifstream file("../input/day2_test");
     std::string line;
     size_t safe_count{0}; // a count of how many reports are safe
     std::vector<int> report{};

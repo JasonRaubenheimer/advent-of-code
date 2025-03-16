@@ -15,8 +15,8 @@ int main()
     std::vector<int> list2;
 
     // read in the two lists
-    std::ifstream file("input/day1");
-    // std::ifstream file("input/day1_test");
+    std::ifstream file("../input/day1");
+    // std::ifstream file("../input/day1_test");
     std::string line;
     std::string delimiter = "   "; // nums separated by 3 spaces
     size_t pos;                    // first position of the delimiter
