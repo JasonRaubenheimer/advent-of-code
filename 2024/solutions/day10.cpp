@@ -327,7 +327,12 @@ int main()
     Hiker hiker{map};
 
     auto trailhead_scores{hiker.find_trailhead_scores()};
-
+    static constexpr int trailhead_scores_answer{698};
+    if (trailhead_scores != trailhead_scores_answer)
+    {
+        std::cout << "part 1 error!! trailhead_scores -> " << trailhead_scores << " != " << trailhead_scores_answer << std::endl;
+        std::exit(1);
+    }
     // answer: 698
     std::cout << "part 1 --> trailhead score: " << trailhead_scores << std::endl;
 #endif
