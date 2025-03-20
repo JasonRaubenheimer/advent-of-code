@@ -113,7 +113,10 @@ public:
 
     Hiker(MapT map) : m_map{map} {}
 
-    uint32_t find_trailhead_scores()
+    /**
+     * @param[in] distinct_routes default is false, if true: the peak is not marked as 'found' and multiple routes to the same peak are counted.
+     */
+    uint32_t find_trailhead_scores(bool distinct_routes = false)
     {
         // loop over each trail point
         //     if trail point == trailhead
@@ -133,7 +136,7 @@ public:
                     // but can be a split in the trail
                     // only increasing numbers (by 1)
                     // "as long as possible" <- not sure how important this is
-                    m_map.at(y).at(x).set_trailhead_score(get_trailhead_score(x, y, m_map));
+                    m_map.at(y).at(x).set_trailhead_score(get_trailhead_score(x, y, m_map, distinct_routes));
                     total_score += m_map.at(y).at(x).get_score();
                 }
             }
@@ -191,13 +194,17 @@ private:
 
     /**
      * @brief recursive method to explore all the routes
+     *
      */
-    MoveResult found_peak(const size_t &x, const size_t &y, MapT &map, const size_t &trailhead_x, const size_t &trailhead_y)
+    MoveResult found_peak(const size_t &x, const size_t &y, MapT &map, const size_t &trailhead_x, const size_t &trailhead_y, bool distinct_routes)
     {
         if (map.at(y).at(x).is_peak() && !map.at(y).at(x).been_here_before())
         {
             // mark our current position as 'been here'
-            map.at(y).at(x).set_been_here();
+            if (!distinct_routes)
+            {
+                map.at(y).at(x).set_been_here();
+            }
             return {MoveResult::Result::found, 1U};
         }
 
@@ -230,7 +237,7 @@ private:
                 new_x = x + 1;
                 break;
             }
-            MoveResult tmp_mov_res = found_peak(new_x, new_y, map, trailhead_x, trailhead_y);
+            MoveResult tmp_mov_res = found_peak(new_x, new_y, map, trailhead_x, trailhead_y, distinct_routes);
 
             if (tmp_mov_res.res == MoveResult::Result::found)
             {
@@ -245,10 +252,10 @@ private:
      * get the score of a trailhead by searching if it links to a 9
      *
      */
-    uint32_t get_trailhead_score(const size_t &x, const size_t &y, const MapT &const_map)
+    uint32_t get_trailhead_score(const size_t &x, const size_t &y, const MapT &const_map, bool distinct_routes)
     {
         MapT map{const_map}; // make a copy of the map for each trailhead
-        MoveResult m_res = found_peak(x, y, map, x, y);
+        MoveResult m_res = found_peak(x, y, map, x, y, distinct_routes);
 
         if (m_res.res == MoveResult::Result::found)
         {
@@ -321,11 +328,12 @@ int main()
         ++y;
     }
 
-#define PART_1 true
-#define PART_2 false
-#if PART_1 == true
     Hiker hiker{map};
 
+#define PART_1 true
+#define PART_2 true
+
+#if PART_1 == true
     auto trailhead_scores{hiker.find_trailhead_scores()};
     static constexpr int trailhead_scores_answer{698};
     if (trailhead_scores != trailhead_scores_answer)
@@ -333,13 +341,18 @@ int main()
         std::cout << "part 1 error!! trailhead_scores -> " << trailhead_scores << " != " << trailhead_scores_answer << std::endl;
         std::exit(1);
     }
-    // answer: 698
     std::cout << "part 1 --> trailhead score: " << trailhead_scores << std::endl;
 #endif
 
 #if PART_2 == true
-    //
-    std::cout << "part 2 --> : " << "" << std::endl;
+    auto trailhead_scores_distinct{hiker.find_trailhead_scores(true)};
+    static constexpr int trailhead_scores_distinct_answer{1436};
+    if (trailhead_scores_distinct != trailhead_scores_distinct_answer)
+    {
+        std::cout << "part 1 error!! trailhead_scores -> " << trailhead_scores_distinct << " != " << trailhead_scores_distinct_answer << std::endl;
+        std::exit(1);
+    }
+    std::cout << "part 2 --> distinct trailhead score: " << trailhead_scores_distinct << std::endl;
 #endif
     return 0;
 }
