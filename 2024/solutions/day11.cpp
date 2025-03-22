@@ -10,22 +10,44 @@
 
 struct Stone
 {
-    Stone(uint32_t num) : m_num(num) {}
+    Stone(uint64_t num) : m_num(num) {}
 
     Stone(std::string num) : m_num(std::stoi(num)) {}
 
-    uint32_t m_num;
+    uint64_t m_num;
 };
 
-uint32_t num_digits(uint32_t num)
+uint64_t num_digits(uint64_t num)
 {
-    uint32_t digits{0};
+    uint64_t digits{0};
     while (num)
     {
         num /= 10;
         ++digits;
     }
     return digits;
+}
+
+std::string strip_leading_zeros(const std::string &num)
+{
+    if (num.size() == 1)
+    {
+        return num; // num might be "0"
+    }
+    std::string stripped{};
+    for (const auto &c : num)
+    {
+        if (stripped.empty() && c == '0')
+        {
+            continue;
+        }
+        stripped += c;
+    }
+    if (stripped.empty())
+    {
+        stripped = "0"; // this half might have been all zeros e.g. "000", then stripped would be ""
+    }
+    return stripped;
 }
 
 /**
@@ -47,7 +69,7 @@ void blink(std::vector<Stone> &stone_line)
 {
     for (size_t i{0}; i < stone_line.size(); ++i)
     {
-        uint32_t stone_num{stone_line.at(i).m_num};
+        uint64_t stone_num{stone_line.at(i).m_num};
         // rule 1
         if (stone_num == 0)
         {
@@ -56,14 +78,16 @@ void blink(std::vector<Stone> &stone_line)
         }
 
         // rule 2
-        uint32_t digit_count{num_digits(stone_num)};
+        uint64_t digit_count{num_digits(stone_num)};
         if (digit_count % 2 == 0)
         {
             // need to split into 2 stones
+            // (TODO: strings are lazy...)
             std::string str_num{std::to_string(stone_num)};
-            stone_line.at(i) = Stone(str_num.substr(0, digit_count / 2));
-            Stone tmp{str_num.substr((digit_count / 2) - 1, digit_count / 2)};
-            stone_line.insert(stone_line.begin() + i, tmp);
+            stone_line.at(i) = Stone(strip_leading_zeros(str_num.substr(0, digit_count / 2)));
+            Stone tmp{strip_leading_zeros(str_num.substr((digit_count / 2), digit_count / 2))};
+            stone_line.insert(stone_line.begin() + i + 1, tmp);
+            ++i; // so we don't keep going with this stone...
             continue;
         }
 
@@ -78,10 +102,10 @@ int main()
 
     std::cout << "day " << day << std::endl;
 
-    std::ifstream infile("../input/day" + day + "_test");
-    // std::ifstream infile("../input/day" + day);
+    // std::ifstream infile("../input/day" + day + "_test");
+    std::ifstream infile("../input/day" + day);
 
-    std::vector<Stone> stone_line{};
+    std::vector<Stone> stone_line{}; // TODO: linked list rather than vector?
     std::string line;
     while (std::getline(infile, line))
     {
@@ -103,12 +127,9 @@ int main()
         }
     }
 
-    size_t n_blink{15};
-    int num{0};
+    size_t n_blink{25};
     while (n_blink)
     {
-        std::cout << num << std::endl;
-        ++num;
         blink(stone_line);
         --n_blink;
     }
@@ -118,13 +139,13 @@ int main()
 
 #if PART_1 == true
     size_t num_stones{stone_line.size()};
-    static constexpr int p1_answer{698};
-    if (0 != p1_answer)
+    std::cout << "part 1 --> num_stones: " << num_stones << std::endl;
+    static constexpr int p1_answer{203609};
+    if (num_stones != p1_answer)
     {
         std::cout << "part 1 error!!  -> " << num_stones << " != " << p1_answer << std::endl;
         std::exit(1);
     }
-    std::cout << "part 1 --> num_stones: " << num_stones << std::endl;
 #endif
 
 #if PART_2 == true
