@@ -3,10 +3,14 @@
 #include <string>
 #include <cctype>
 #include <cmath>
+#include <map>
 
 // https://adventofcode.com/2024/day/11
 
 // DAY=11 && clang++ -Wall -std=c++20 day${DAY}_p2.cpp -o day${DAY}_p2 && ./day${DAY}_p2
+
+// hash map to hold previously calculated stone + iteration combinations
+std::map<std::string, uint64_t> cache{};
 
 uint64_t num_digits(uint64_t num)
 {
@@ -41,38 +45,57 @@ uint64_t num_digits(uint64_t num)
  */
 uint64_t num_stones(uint64_t stone_num, size_t iteration, uint64_t total_num_stones)
 {
+    // first check cache
+    std::string hash{std::to_string(stone_num) + "-" + std::to_string(iteration)};
+    if (cache.count(hash) != 0)
+    {
+        // in cache
+        return cache[hash];
+    }
+
+    uint64_t count;
+
     if (iteration == 0)
     {
-        return total_num_stones;
+        count = total_num_stones;
     }
-    --iteration;
-
-    // rule 1
-    if (stone_num == 0)
+    else
     {
-        // make stone_num = 1
-        return num_stones(1, iteration, total_num_stones);
+        --iteration;
+
+        // rule 1
+        if (stone_num == 0)
+        {
+            // make stone_num = 1
+            count = num_stones(1, iteration, total_num_stones);
+        }
+        else
+        {
+            // rule 2
+            uint64_t digit_count{num_digits(stone_num)};
+            if (digit_count % 2 == 0)
+            {
+                // need to split into 2 stones
+                // find the place to split
+                uint64_t place{static_cast<uint64_t>(std::pow(10, (digit_count / 2)))};
+                uint64_t new_stone_num{stone_num / place};
+                stone_num = stone_num % place; // original stone num
+
+                // now we split and go down 2 different paths
+                count = num_stones(stone_num, iteration, total_num_stones) + num_stones(new_stone_num, iteration, total_num_stones);
+            }
+            else
+            {
+                // rule 3
+                stone_num *= 2024;
+                count = num_stones(stone_num, iteration, total_num_stones);
+            }
+        }
     }
 
-    // rule 2
-    uint64_t digit_count{num_digits(stone_num)};
-    if (digit_count % 2 == 0)
-    {
-        // need to split into 2 stones
-        // find the place to split
-        uint64_t place{static_cast<uint64_t>(std::pow(10, (digit_count / 2)))};
-        uint64_t new_stone_num{stone_num / place};
-        stone_num = stone_num % place; // original stone num
-
-        // now we split and go down 2 different paths
-        total_num_stones = num_stones(stone_num, iteration, total_num_stones) + num_stones(new_stone_num, iteration, total_num_stones);
-        return total_num_stones;
-    }
-
-    // rule 3
-    stone_num *= 2024;
-    total_num_stones = num_stones(stone_num, iteration, total_num_stones);
-    return total_num_stones;
+    // clearly wasn't in cache so add it
+    cache.insert(std::make_pair(hash, count));
+    return count;
 }
 
 int main()
@@ -116,7 +139,7 @@ int main()
     }
 
     std::cout << "part 2 --> total_stones: " << total_stones << std::endl;
-    static constexpr int p2_answer{203609};
+    static constexpr uint64_t p2_answer{240954878211138};
     if (total_stones != p2_answer)
     {
         std::cout << "part 1 error!!  -> " << total_stones << " != " << p2_answer << std::endl;
