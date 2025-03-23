@@ -14,7 +14,13 @@
 class Point
 {
 public:
-    Point(char letter, size_t x, size_t y) : m_x{x}, m_y{y}, m_letter{letter}, m_accounted{false} {}
+    Point(char letter, size_t x, size_t y) : m_position{x, y}, m_letter{letter}, m_accounted{false} {}
+
+    struct Position
+    {
+        size_t x;
+        size_t y;
+    };
 
     char get_letter() const
     {
@@ -31,16 +37,24 @@ public:
         m_accounted = true;
     }
 
+    Position get_position() const
+    {
+        return m_position;
+    }
+
 private:
-    size_t m_x;
-    size_t m_y;
+    Position m_position;
     char m_letter;
     bool m_accounted;
 };
 
 /**
  * @brief all the points of the same letter that are connected horizontally and/or vertically.
+ *
  * - "The area of a region is simply the number of garden plots the region contains"
+ *
+ * - "The perimeter of a region is the number of sides of garden plots in the region that do
+ *   not touch another garden plot in the same region."
  *
  * @param[in] points is a vector of Point objects (a single point on the map) that all share
  * the same letter and are connected horizontally and/or vertically.
@@ -48,12 +62,84 @@ private:
 class Plot
 {
 public:
-    Plot(char letter, std::vector<Point> points) : m_letter{letter}, m_points{points}, m_area{points.size()} {}
+    Plot(char letter, std::vector<Point> points) : m_letter{letter}, m_points{points}, m_perimeter{calculate_perimeter()}, m_area{points.size()} {}
 
 private:
+    /**
+     * @brief given the input point location, and all the points in this plot, find whether the input
+     * point is part of this plot.
+     *
+     * @param[in] search_x is the x location to search for
+     * @param[in] search_y is the y location to search for
+     */
+    bool point_in_plot(size_t search_x, size_t search_y)
+    {
+        for (const auto &point : m_points)
+        {
+            if (point.get_position().x == search_x && point.get_position().y == search_y)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * "The perimeter of a region is the number of sides of garden plots in the region that do
+     * not touch another garden plot in the same region."
+     */
+    size_t calculate_perimeter()
+    {
+        size_t perimeter{0};
+
+        // loop over each point and see which of the sides touch another garden plot in the same region
+        for (const auto &point : m_points)
+        {
+            size_t point_x{point.get_position().x};
+            size_t point_y{point.get_position().y};
+
+            // check up
+            if (point_y > 0) // this check is to make sure size_t doesn't go negative
+            {
+                if (!point_in_plot(point_x, point_y - 1))
+                {
+                    ++perimeter;
+                }
+            }
+            else // if we can't go up then it must be a perimeter
+            {
+                ++perimeter;
+            }
+            // down (don't need to check for a size too big... not accessing a vector or anything)
+            if (!point_in_plot(point_x, point_y + 1))
+            {
+                ++perimeter;
+            }
+            // left
+            if (point_x > 0) // this check is to make sure size_t doesn't go negative
+            {
+                if (!point_in_plot(point_x - 1, point_y))
+                {
+                    ++perimeter;
+                }
+            }
+            else // if we can't go left then it must be a perimeter
+            {
+                ++perimeter;
+            }
+            // right
+            if (!point_in_plot(point_x + 1, point_y))
+            {
+                ++perimeter;
+            }
+        }
+
+        return perimeter;
+    }
+
     char m_letter;
     std::vector<Point> m_points;
-    // size_t m_perimeter;
+    size_t m_perimeter;
     size_t m_area;
 };
 
