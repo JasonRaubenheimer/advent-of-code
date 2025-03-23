@@ -38,16 +38,23 @@ private:
     bool m_accounted;
 };
 
+/**
+ * @brief all the points of the same letter that are connected horizontally and/or vertically.
+ * - "The area of a region is simply the number of garden plots the region contains"
+ *
+ * @param[in] points is a vector of Point objects (a single point on the map) that all share
+ * the same letter and are connected horizontally and/or vertically.
+ */
 class Plot
 {
 public:
-    Plot(char letter, std::vector<Point> points) : m_letter{letter}, m_points{points} {}
+    Plot(char letter, std::vector<Point> points) : m_letter{letter}, m_points{points}, m_area{points.size()} {}
 
 private:
     char m_letter;
     std::vector<Point> m_points;
     // size_t m_perimeter;
-    // size_t m_area;
+    size_t m_area;
 };
 
 /**
@@ -176,9 +183,9 @@ int main()
         ++y;
     }
 
-    Farm f{area};
+    Farm farm{area};
 
-    f.find_plots();
+    farm.find_plots();
 
     std::cout << std::endl;
 
