@@ -62,7 +62,15 @@ private:
 class Plot
 {
 public:
-    Plot(char letter, std::vector<Point> points) : m_letter{letter}, m_points{points}, m_perimeter{calculate_perimeter()}, m_area{points.size()} {}
+    Plot(char letter, std::vector<Point> points) : m_letter{letter}, m_points{points}, m_perimeter{calculate_perimeter()}, m_area{points.size()}, m_price{calculate_price()}
+    {
+        (void)m_letter; // thought I'd need this but doesn't seem like it... maybe part 2?
+    }
+
+    uint64_t get_price() const
+    {
+        return m_price;
+    }
 
 private:
     /**
@@ -137,10 +145,20 @@ private:
         return perimeter;
     }
 
+    /**
+     * @brief "The price of fence required for a region is found by multiplying that region's
+     * area by its perimeter."
+     */
+    uint64_t calculate_price()
+    {
+        return m_area * m_perimeter;
+    }
+
     char m_letter;
     std::vector<Point> m_points;
     size_t m_perimeter;
     size_t m_area;
+    uint64_t m_price;
 };
 
 /**
@@ -152,7 +170,7 @@ public:
     using MapT = std::vector<std::vector<Point>>;
     using PlotT = std::vector<Plot>;
 
-    Farm(MapT area) : m_area{area} {}
+    Farm(MapT area) : m_area{area}, m_total_price{0} {}
 
     /**
      * @brief loop over each Point and start a search for the plot
@@ -171,6 +189,26 @@ public:
                 m_plots.push_back(find_plot(x, y));
             }
         }
+    }
+
+    /**
+     * @brief "The total price of fencing all regions on a map is found by adding together
+     * the price of fence for every region on the map."
+     */
+    void calculate_total_price()
+    {
+        for (const auto &plot : m_plots)
+        {
+            m_total_price += plot.get_price();
+        }
+    }
+
+    /**
+     * @brief return the total price of all the plots
+     */
+    uint64_t get_total_price() const
+    {
+        return m_total_price;
     }
 
 private:
@@ -243,8 +281,8 @@ private:
     }
 
     std::vector<Plot> m_plots;
-
     MapT m_area;
+    uint64_t m_total_price;
 };
 
 int main()
@@ -253,8 +291,9 @@ int main()
 
     std::cout << "day " << day << std::endl;
 
-    std::ifstream infile("../input/day" + day + "_test1");
-    // std::ifstream infile("../input/day" + day);
+    // std::ifstream infile("../input/day" + day + "_test1");
+    // std::ifstream infile("../input/day" + day + "_test2");
+    std::ifstream infile("../input/day" + day);
 
     Farm::MapT area;
     std::string line;
@@ -272,21 +311,20 @@ int main()
     Farm farm{area};
 
     farm.find_plots();
-
-    std::cout << std::endl;
+    farm.calculate_total_price();
 
 #define PART_1 true
 #define PART_2 false
 
 #if PART_1 == true
-    // size_t num_stones{stone_line.size()};
-    // std::cout << "part 1 --> num_stones: " << num_stones << std::endl;
-    // static constexpr int p1_answer{203609};
-    // if (num_stones != p1_answer)
-    // {
-    //     std::cout << "part 1 error!!  -> " << num_stones << " != " << p1_answer << std::endl;
-    //     std::exit(1);
-    // }
+    size_t total_price{farm.get_total_price()};
+    std::cout << "part 1 --> total_price: " << total_price << std::endl;
+    static constexpr int p1_answer{1452678};
+    if (total_price != p1_answer)
+    {
+        std::cout << "part 1 error!!  -> " << total_price << " != " << p1_answer << std::endl;
+        std::exit(1);
+    }
 #endif
 
 #if PART_2 == true
