@@ -14,7 +14,7 @@
 class Point
 {
 public:
-    Point(char letter, size_t x, size_t y) : m_position{x, y}, m_letter{letter}, m_accounted{false} {}
+    Point(char letter, size_t x, size_t y) : m_position{x, y}, m_letter{letter}, m_accounted{false}, m_adjacent_x{false}, m_adjacent_y{false} {}
 
     struct Position
     {
@@ -42,10 +42,32 @@ public:
         return m_position;
     }
 
+    void set_adjacent_x()
+    {
+        m_adjacent_x = true;
+    }
+
+    bool get_adjacent_x() const
+    {
+        return m_adjacent_x;
+    }
+
+    void set_adjacent_y()
+    {
+        m_adjacent_y = true;
+    }
+
+    bool get_adjacent_y() const
+    {
+        return m_adjacent_y;
+    }
+
 private:
     Position m_position;
     char m_letter;
     bool m_accounted;
+    bool m_adjacent_x;
+    bool m_adjacent_y;
 };
 
 /**
@@ -62,7 +84,7 @@ private:
 class Plot
 {
 public:
-    Plot(char letter, std::vector<Point> points) : m_letter{letter}, m_points{points}, m_perimeter{calculate_perimeter()}, m_area{points.size()}, m_price{calculate_price()}
+    Plot(char letter, std::vector<Point> points) : m_letter{letter}, m_points{points}, m_corner_point_count{0}, m_perimeter{calculate_perimeter()}, m_area{points.size()}, m_price{calculate_price()}, m_price_p2{calculate_price_p2()}
     {
         (void)m_letter; // thought I'd need this but doesn't seem like it... maybe part 2?
     }
@@ -72,16 +94,29 @@ public:
         return m_price;
     }
 
+    uint64_t get_price_p2() const
+    {
+        return m_price_p2;
+    }
+
 private:
     /**
      * @brief given the input point location, and all the points in this plot, find whether the input
      * point is part of this plot.
      *
-     * @param[in] search_x is the x location to search for
-     * @param[in] search_y is the y location to search for
+     * Ok to pass in negative numbers
+     * - this function checks for that and returns false if x < 0 || y < 0
+     *
+     * @param[in] search_x int64_t is the x location to search for
+     * @param[in] search_y int64_t is the y location to search for
      */
-    bool point_in_plot(size_t search_x, size_t search_y)
+    bool point_in_plot(int64_t search_x, int64_t search_y)
     {
+        if (search_x < 0 || search_y < 0)
+        {
+            return false;
+        }
+
         for (const auto &point : m_points)
         {
             if (point.get_position().x == search_x && point.get_position().y == search_y)
@@ -107,14 +142,7 @@ private:
             size_t point_y{point.get_position().y};
 
             // check up
-            if (point_y > 0) // this check is to make sure size_t doesn't go negative
-            {
-                if (!point_in_plot(point_x, point_y - 1))
-                {
-                    ++perimeter;
-                }
-            }
-            else // if we can't go up then it must be a perimeter
+            if (!point_in_plot(point_x, point_y - 1))
             {
                 ++perimeter;
             }
@@ -124,14 +152,7 @@ private:
                 ++perimeter;
             }
             // left
-            if (point_x > 0) // this check is to make sure size_t doesn't go negative
-            {
-                if (!point_in_plot(point_x - 1, point_y))
-                {
-                    ++perimeter;
-                }
-            }
-            else // if we can't go left then it must be a perimeter
+            if (!point_in_plot(point_x - 1, point_y))
             {
                 ++perimeter;
             }
@@ -139,6 +160,61 @@ private:
             if (!point_in_plot(point_x + 1, point_y))
             {
                 ++perimeter;
+            }
+
+            // for part 2
+            // check the 'outer' corners
+            /*
+                A A A
+                A A A A
+                A A A
+            */
+            // top right
+            if (!point_in_plot(point_x, point_y - 1) && !point_in_plot(point_x + 1, point_y))
+            {
+                ++m_corner_point_count;
+            }
+            // bottom right
+            if (!point_in_plot(point_x, point_y + 1) && !point_in_plot(point_x + 1, point_y))
+            {
+                ++m_corner_point_count;
+            }
+            // bottom left
+            if (!point_in_plot(point_x, point_y + 1) && !point_in_plot(point_x - 1, point_y))
+            {
+                ++m_corner_point_count;
+            }
+            // top left
+            if (!point_in_plot(point_x, point_y - 1) && !point_in_plot(point_x - 1, point_y))
+            {
+                ++m_corner_point_count;
+            }
+            // now need to find the 'inner' corners like the + below
+            /*
+               A A
+               A A
+               A + A A
+               A A A A
+            */
+            // not top right, but top and right are
+            if (!point_in_plot(point_x + 1, point_y - 1) && point_in_plot(point_x, point_y - 1) && point_in_plot(point_x + 1, point_y))
+            {
+                ++m_corner_point_count;
+            }
+            // not bottom right, but bottom and right are
+            if (!point_in_plot(point_x + 1, point_y + 1) && point_in_plot(point_x, point_y + 1) && point_in_plot(point_x + 1, point_y))
+            {
+                ++m_corner_point_count;
+            }
+            // not bottom left, but bottom and left are
+            if (!point_in_plot(point_x - 1, point_y + 1) && point_in_plot(point_x, point_y + 1) && point_in_plot(point_x - 1, point_y))
+            {
+                ++m_corner_point_count;
+            }
+            // not top left, but top and left are
+            if (!point_in_plot(point_x - 1, point_y - 1) && point_in_plot(point_x, point_y - 1) && point_in_plot(point_x - 1, point_y))
+            {
+                ++m_corner_point_count;
             }
         }
 
@@ -154,11 +230,21 @@ private:
         return m_area * m_perimeter;
     }
 
+    /**
+     * @brief "multiplying the region's area by its number of sides"
+     */
+    uint64_t calculate_price_p2()
+    {
+        return m_area * m_corner_point_count;
+    }
+
     char m_letter;
     std::vector<Point> m_points;
+    size_t m_corner_point_count;
     size_t m_perimeter;
     size_t m_area;
     uint64_t m_price;
+    uint64_t m_price_p2;
 };
 
 /**
@@ -170,7 +256,7 @@ public:
     using MapT = std::vector<std::vector<Point>>;
     using PlotT = std::vector<Plot>;
 
-    Farm(MapT area) : m_area{area}, m_total_price{0} {}
+    Farm(MapT area) : m_area{area}, m_total_price{0}, m_total_price_p2{0} {}
 
     /**
      * @brief loop over each Point and start a search for the plot
@@ -209,6 +295,22 @@ public:
     uint64_t get_total_price() const
     {
         return m_total_price;
+    }
+
+    void calculate_total_price_p2()
+    {
+        for (const auto &plot : m_plots)
+        {
+            m_total_price_p2 += plot.get_price_p2();
+        }
+    }
+
+    /**
+     * @brief return the total price of all the plots (for part 2)
+     */
+    uint64_t get_total_price_p2() const
+    {
+        return m_total_price_p2;
     }
 
 private:
@@ -283,6 +385,7 @@ private:
     std::vector<Plot> m_plots;
     MapT m_area;
     uint64_t m_total_price;
+    uint64_t m_total_price_p2;
 };
 
 int main()
@@ -314,20 +417,29 @@ int main()
     farm.calculate_total_price();
 
 #define PART_1 true
-#define PART_2 false
+#define PART_2 true
 
 #if PART_1 == true
-    size_t total_price{farm.get_total_price()};
-    std::cout << "part 1 --> total_price: " << total_price << std::endl;
+    size_t total_price_p1{farm.get_total_price()};
+    std::cout << "part 1 --> total_price_p1: " << total_price_p1 << std::endl;
     static constexpr int p1_answer{1452678};
-    if (total_price != p1_answer)
+    if (total_price_p1 != p1_answer)
     {
-        std::cout << "part 1 error!!  -> " << total_price << " != " << p1_answer << std::endl;
+        std::cout << "part 1 error!!  -> " << total_price_p1 << " != " << p1_answer << std::endl;
         std::exit(1);
     }
 #endif
 
 #if PART_2 == true
+    farm.calculate_total_price_p2();
+    size_t total_price_p2{farm.get_total_price_p2()};
+    std::cout << "part 2 --> total_price_p2: " << total_price_p2 << std::endl;
+    static constexpr int p2_answer{873584};
+    if (total_price_p2 != p2_answer)
+    {
+        std::cout << "part 2 error!!  -> " << total_price_p2 << " != " << p2_answer << std::endl;
+        std::exit(1);
+    }
 #endif
 
     return 0;
