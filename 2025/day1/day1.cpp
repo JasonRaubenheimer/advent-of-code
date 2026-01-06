@@ -23,6 +23,10 @@ int main() {
   int count{0};
   int current_val{starting};
 
+  // for part 2
+  int count2{0};
+  int curr_val2{starting};
+
   // start at 50
   // read each line
   // if current == 0, ++ count
@@ -57,9 +61,29 @@ int main() {
     if (current_val == match_num) {
       ++count;
     }
+
+    // part 2
+    while (val > 0) {
+      if (dir == right) {
+        ++curr_val2;
+        if (curr_val2 > max_num) {
+          curr_val2 = min_num;
+        }
+      } else {
+        --curr_val2;
+        if (curr_val2 < min_num) {
+          curr_val2 = max_num;
+        }
+      }
+      if (curr_val2 == match_num) {
+        ++count2;
+      }
+      --val;
+    }
   }
 
   std::cout << "count: " << count << std::endl;
+  std::cout << "count part 2: " << count2 << std::endl;
 
   return 0;
 }
